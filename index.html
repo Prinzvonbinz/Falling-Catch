@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Falling Catch — Skill Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <h1>Falling Catch</h1>
+    <nav class="top-nav">
+      <button id="nav-home" class="ghost">Hauptmenü</button>
+      <button id="nav-stats" class="ghost">Statistiken</button>
+      <button id="nav-editor" class="ghost" data-locked="true" disabled>Editor (500 Punkte)</button>
+    </nav>
+  </header>
+
+  <!-- Hauptmenü -->
+  <main id="view-home" class="view active">
+    <section class="card">
+      <h2>Spiel starten</h2>
+      <div class="modes">
+        <button class="mode-btn" data-mode="easy">Leicht</button>
+        <button class="mode-btn" data-mode="medium">Mittel</button>
+        <button class="mode-btn" data-mode="hard">Schwer</button>
+        <button class="mode-btn hardcore" id="btn-hardcore" data-mode="hardcore" disabled>
+          Hardcore (gesperrt)
+        </button>
+      </div>
+      <p class="hint">
+        Fange alle <strong>guten</strong> Items mit Klicks, vermeide Klicks auf <strong>böse</strong> Items.
+        Verpasstes gutes Item (Boden) = −1 Leben. Klick auf böses Item = −1 Leben.
+      </p>
+      <div class="best-grid">
+        <div><span>Best Leicht:</span><strong id="best-easy">0</strong></div>
+        <div><span>Best Mittel:</span><strong id="best-medium">0</strong></div>
+        <div><span>Best Schwer:</span><strong id="best-hard">0</strong></div>
+        <div><span>Best Hardcore:</span><strong id="best-hardcore">0</strong></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Fortschritt</h3>
+      <div class="progress-wrap">
+        <div class="progress-line">
+          <div class="progress-fill" id="progress-total"></div>
+        </div>
+        <div class="progress-labels">
+          <span>Gesamtpunkte:</span>
+          <strong id="total-points">0</strong> / <strong>500</strong> (Editor)
+        </div>
+      </div>
+
+      <div class="unlock-conditions">
+        <div>
+          <span>Hardcore-Freischaltung:</span>
+          <ul>
+            <li>≥ 100 Punkte in <b>Leicht</b>, <b>Mittel</b> und <b>Schwer</b></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Spiel -->
+  <main id="view-game" class="view">
+    <section class="hud">
+      <div>Punkte: <strong id="hud-score">0</strong></div>
+      <div>Leben: <strong id="hud-lives">0</strong></div>
+      <div>Modus: <strong id="hud-mode">-</strong></div>
+      <button id="btn-pause" class="ghost">Pause</button>
+      <button id="btn-quit" class="danger ghost">Beenden</button>
+    </section>
+    <section id="game-area" class="game-area">
+      <!-- Falling items werden dynamisch eingefügt -->
+      <div id="ground"></div>
+      <div id="overlay-pause" class="overlay hidden">
+        <div class="modal">
+          <h3>Pause</h3>
+          <button id="btn-resume">Weiter</button>
+          <button id="btn-exit" class="danger">Runde beenden</button>
+        </div>
+      </div>
+      <div id="overlay-gameover" class="overlay hidden">
+        <div class="modal">
+          <h3>Game Over</h3>
+          <p>Punkte: <strong id="over-score">0</strong></p>
+          <button id="btn-retry">Erneut spielen</button>
+          <button id="btn-home">Zum Menü</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Statistiken -->
+  <main id="view-stats" class="view">
+    <section class="card">
+      <h2>Statistiken</h2>
+      <div class="stats-grid">
+        <div><span>Gesamtpunkte:</span><strong id="stat-total-points">0</strong></div>
+        <div><span>Gespielte Runden:</span><strong id="stat-total-games">0</strong></div>
+        <div><span>Gesamtspielzeit:</span><strong id="stat-total-time">0:00:00</strong></div>
+      </div>
+      <div class="best-grid">
+        <div><span>Best Leicht:</span><strong id="stat-best-easy">0</strong></div>
+        <div><span>Best Mittel:</span><strong id="stat-best-medium">0</strong></div>
+        <div><span>Best Schwer:</span><strong id="stat-best-hard">0</strong></div>
+        <div><span>Best Hardcore:</span><strong id="stat-best-hardcore">0</strong></div>
+      </div>
+
+      <h3>Häufigste Items (aktiver Slot)</h3>
+      <div class="thumbs">
+        <div>
+          <div class="thumb" id="thumb-best-good"></div>
+          <span>Meist gefangen (gut)</span>
+        </div>
+        <div>
+          <div class="thumb" id="thumb-best-bad"></div>
+          <span>Meist angeklickt (böse)</span>
+        </div>
+      </div>
+
+      <div class="controls-row">
+        <button id="btn-reset-stats" class="danger ghost">Alle Statistiken zurücksetzen</button>
+        <button id="btn-reset-all" class="danger">Alles zurücksetzen (inkl. Editor)</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Editor -->
+  <main id="view-editor" class="view">
+    <section class="card">
+      <h2>Editor</h2>
+
+      <div class="slot-row">
+        <label for="slot-select">Speicherslot:</label>
+        <select id="slot-select"></select>
+        <button id="slot-new" class="ghost">Neu</button>
+        <button id="slot-rename" class="ghost">Umbenennen</button>
+        <button id="slot-delete" class="ghost danger">Löschen</button>
+      </div>
+
+      <div class="editor-grid">
+        <div class="editor-col">
+          <h3>Gute Items (anklicken)</h3>
+          <div id="good-preview" class="preview-grid"></div>
+          <div class="controls-row">
+            <label class="file-btn">
+              <input id="good-upload" type="file" accept="image/*" multiple />
+              Bilder hinzufügen
+            </label>
+            <button id="good-reset" class="ghost">Auf Standard</button>
+          </div>
+        </div>
+
+        <div class="editor-col">
+          <h3>Böse Items (nicht anklicken)</h3>
+          <div id="bad-preview" class="preview-grid"></div>
+          <div class="controls-row">
+            <label class="file-btn">
+              <input id="bad-upload" type="file" accept="image/*" multiple />
+              Bilder hinzufügen
+            </label>
+            <button id="bad-reset" class="ghost">Auf Standard</button>
+          </div>
+        </div>
+
+        <div class="editor-col">
+          <h3>Hintergrund</h3>
+          <div id="bg-preview" class="preview-grid single"></div>
+          <div class="controls-row">
+            <label class="file-btn">
+              <input id="bg-upload" type="file" accept="image/*" />
+              Hintergrund wählen
+            </label>
+            <button id="bg-reset" class="ghost">Standard-Hintergrund</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="controls-row end">
+        <button id="slot-save" class="primary">Speichern</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <small>Alles lokal gespeichert • Keine Powerups • Hardcore nur für Profis 💀</small>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
